@@ -6,9 +6,9 @@
                     <h1 class="text-center">TODO List App</h1>
                     <form v-on:submit.prevent="addNewTask">
                         <label for="taskNameInput">Task Name</label>
-                        <input type="text" id="taskNameInput" class="form-control" placeholder="Add New Task">
+                        <input v-model="taskname" type="text" id="taskNameInput" class="form-control" placeholder="Add New Task">
                         <button v-if="this.isEdit == false" type="submit" class="btn btn-success btn-block mt-3">Submit</button>
-                        <button v-else type="button" class="btn btn-primary btn-block mt-3">Update</button>
+                        <button v-else v-on:click="updateTask" type="button" class="btn btn-primary btn-block mt-3">Update</button>
                     </form>
                     <table class="table">
                         <tr v-for="(todo) in todos"
@@ -17,7 +17,7 @@
                                 <td class="text-left">{{todo.task_name}}</td>
                                 <td class="text-right">
                                     <button class="btn btn-info" v-on:click="editTask(todo.task_name, todo.id)">Edit</button>
-                                    <button class="btn btn-info" v-on:click="deleteTask(todo.id)">Delete</button>
+                                    <button class="btn btn-danger" v-on:click="deleteTask(todo.id)">Delete</button>
                                 </td>
                         </tr>
                     </table>
@@ -30,8 +30,9 @@
 <script>
 import axios from 'axios'
 
+/* eslint-disable */
 export default {
-    data(){
+    data () {
         return {
             todos: [],
             id: '',
@@ -39,12 +40,12 @@ export default {
             isEdit: false
         }
     },
-    mounted() {
+    mounted () {
         this.getTasks()
     },
     methods: {
         getTasks() {
-            axios.get("/api/tasks")
+            axios.get('/api/tasks')
                 .then(result => {
                     console.log(result.data)
                     this.todos = result.data
@@ -53,6 +54,44 @@ export default {
                     console.log(err)
                 }
             )
+        },
+        addNewTask() {
+            axios.post('/api/task', {task_name: this.taskname})
+                .then((res) => {
+                    this.taskname = ''
+                    this.getTasks()
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+        },
+        editTask(title, id) {
+            this.id = id
+            this.taskname = title
+            this.isEdit = true
+        },
+        updateTask () {
+            axios.put(`/api/task/${this.id}`, {task_name: this.taskname})
+                .then((res) => {
+                    this.taskname = ''
+                    this.isEdit = false
+                    this.getTasks()
+                    console.log(res)
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+        },
+        deleteTask(id){
+            axios.delete(`/api/task/${id}`)
+                .then((res) => {
+                    this.taskname = ''
+                    this.getTasks()
+                    console.log(res)
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
         }
     }
 }
